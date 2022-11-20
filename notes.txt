@@ -1,0 +1,6 @@
+Pour l'instant, les process P, A et B ont été crées.
+Le process P est supprimé au début
+Lorsque nous ne rentrons pas au clavier, le process P tué est en mode zombie car le wait(NULL) n'a pas encore été parcouru.
+Lorsque nous rentrons quelque chose au clavier, il reste le process A et B qui tournent au background
+
+Il faut implémenter le restant des processus avec les chaines BDG - CFJ.
