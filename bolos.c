@@ -1,28 +1,52 @@
 #include <stdio.h>
 #include <sys/types.h>
 #include <unistd.h>
+#include <wait.h>
+#include <signal.h>
 void forkexample()
 {
-int processID = fork();
+    // Declaration of the two process p and a
+    pid_t process_p, process_a;
 
-    if(processID>0)
+    // Fork from the program and creation of the process_p
+    process_p = fork();
+
+    // If this is the process_p code
+    // PID of the child is 0
+    if (process_p == 0)
     {
-        printf("fork() returned a +ve value. This is the parent process, with ID: %d \n",getpid());
+        // Fork of the process_a based on the process_p
+        process_a = fork();
+
+        // If this is the process_a code
+        // PID of the child is 0
+        if (process_a == 0)
+        {
+            printf("I am the child a from the parent p with pid %d\n", (int)getpid());
+            sleep(5);
+            printf("The pid of the parent p is %d\n", (int)getppid());
+            printf("Child exiting...\n");
+        }
+        // If this is not the process_a code
+        else
+        {
+            printf("I am the child p from the parent program with pid %d\n", (int)getpid());
+            printf("The pid of the program itself is %d\n", (int)getppid());
+            wait(NULL);
+            //kill(getpid(), SIGKILL);
+        }
     }
-    else if(processID==0)
-    {
-        printf("fork() returned a 0 value. This is a newly created child process with ID: %d \n",getpid());
-        printf("The parent process of this child process has the ID: %d\n",getppid());
-    }
+
+    // Else the parent code of the program
+    // PID of the parent is not 0
     else
     {
-        printf("fork() returned a -ve value, so the fork system called failed and the child process could not be created\n");
+        wait(NULL);
     }
-    printf("This is a single print statement. If the fork() system call was successful, both the parent and child process will run concurrently, and this statement will print twice.\n");
+
 }
 
-
-int main()
+int main(int argc, char* argv[])
 {
     forkexample();
     return 0;
