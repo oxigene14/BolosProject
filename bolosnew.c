@@ -90,6 +90,7 @@ void forkthreeprocess(char* name1, int* process_1, char* name2, int* process_2, 
                         default:
                             // used for the child to finish its process
                             wait(NULL);
+                            pause();
                             break;
                             
                     }
@@ -98,6 +99,7 @@ void forkthreeprocess(char* name1, int* process_1, char* name2, int* process_2, 
                 default:
                     // Used for the child to finish its process
                     wait(NULL);
+                    pause();
                     break;
                     
             }
@@ -167,13 +169,16 @@ void mainfork(int pArgc, char **pArgv)
                     // If we didn't have any child and we have wait(null) then it will automatically continue
                     // This is why now the process A will live as long as the process have child pending
                     // Otherwise we could have used the pause() method
+                    
                     wait(NULL);
+                    pause();
+               
                     break;
                 // If this is not the process_a code then it is the process_p code
                 // In this case, the goal is to kill it manually or we could let it die on its own
                 default:
                     printf("The pid of the process_p dies %d\n", (int)getpid());
-                    // We could let it die on its own, but we could also kill it manually with the sigterm signal
+                    // We could let it die on its own, but we can also kill it manually with the sigterm signal
                     kill(getpid(), SIGTERM);
                     break;
 
@@ -191,7 +196,8 @@ void mainfork(int pArgc, char **pArgv)
             sleep(4);
             printf("Please provide anything in the keyboard to try to send a sigterm signal to the process_a\n");
             scanf("%s" , word);
-
+            kill(process_a, SIGTERM);
+            pause();
     }
 
 }
