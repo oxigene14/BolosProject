@@ -142,12 +142,11 @@ void mainfork()
                 // PID of the child is 0  
                 case 0:
                     printf("The pid of the process_a is %d\n", (int)getpid());
-                    //forkoneprocess("process_h", &process_h);
-                    //forkoneprocess("process_e", &process_e);
-                    //forkoneprocess("process_i", &process_i);
+                    forkoneprocess("process_h", &process_h);
+                    forkoneprocess("process_e", &process_e);
+                    forkoneprocess("process_i", &process_i);
                     
                     forkthreeprocess("process_b", &process_b, "process_d", &process_d, "process_g", &process_g);
-                    //sleep(5);
                     forkthreeprocess("process_c", &process_c, "process_f", &process_f, "process_j", &process_j);
                     // We wait because we have childs pending that can still be alive
                     // If we didn't have any child and we have wait(null) then it will automatically continue
