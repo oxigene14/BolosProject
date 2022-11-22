@@ -82,6 +82,7 @@ void forkthreeprocess(char* name1, int* process_1, char* name2, int* process_2, 
                             break;
                         // If this is not the process code
                         default:
+                            // used for the child to finish its process
                             wait(NULL);
                             break;
                             
@@ -89,6 +90,7 @@ void forkthreeprocess(char* name1, int* process_1, char* name2, int* process_2, 
                     break;
                 // If this is not the process code
                 default:
+                    // Used for the child to finish its process
                     wait(NULL);
                     break;
                     
@@ -96,6 +98,7 @@ void forkthreeprocess(char* name1, int* process_1, char* name2, int* process_2, 
             break;
         // If this is not the process code
         default:
+            // No wait(NULL) because we are already waiting in the process when the function is called
             //wait(NULL);
             break;
             
