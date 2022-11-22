@@ -188,7 +188,10 @@ void mainfork(int pArgc, char **pArgv)
             // Then an entry is prompted
             // If the p program was paused, then the main program will wait indefinitely and the scanf method will not be executed
             wait(NULL);
-            scanf("%s" , word) ;
+            sleep(4);
+            printf("Please provide anything in the keyboard to try to send a sigterm signal to the process_a\n");
+            scanf("%s" , word);
+
     }
 
 }
