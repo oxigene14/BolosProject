@@ -3,13 +3,14 @@
 #include <unistd.h>
 #include <wait.h>
 #include <signal.h>
-
+#include <string.h>
 // A zombie process : A child that terminates, but has not been waited for becomes a "zombie".
 
 // Function that takes a string and an integer in parameter
 // This function will create the process that we want
-void forkoneprocess(char* name, int *process)
+void forkoneprocess(char* name, int *process, int pArgc, char **pArgv)
 {
+    int argv0size = strlen(pArgv[0]);
     // Fork from the program and creation of the process
     *process = fork();
 
@@ -24,6 +25,7 @@ void forkoneprocess(char* name, int *process)
         // If this is the process code
         // PID of the child is 0 
         case 0:
+            strncpy(pArgv[0], name, argv0size);
             printf("The pid of the %s is %d\n", name, (int)getpid());
             pause();
             break;
@@ -36,8 +38,9 @@ void forkoneprocess(char* name, int *process)
 
 // Function that takes 3 process in parameter and that will create the chain BDG and CFJ
 // The 3 process will be created right after the other 
-void forkthreeprocess(char* name1, int* process_1, char* name2, int* process_2, char* name3, int* process_3)
+void forkthreeprocess(char* name1, int* process_1, char* name2, int* process_2, char* name3, int* process_3, int pArgc, char **pArgv)
 {
+    int argv0size = strlen(pArgv[0]);
     // Fork from the program and creation of the process_1
     *process_1 = fork();
     // Switch case for the process created
@@ -51,6 +54,7 @@ void forkthreeprocess(char* name1, int* process_1, char* name2, int* process_2, 
         // If this is the process code
         // PID of the child is 0 
         case 0:
+            strncpy(pArgv[0], name1, argv0size);
             printf("The pid of the %s is %d\n", name1, (int)getpid());
 
             // Fork from the program and creation of the process_2
@@ -64,6 +68,7 @@ void forkthreeprocess(char* name1, int* process_1, char* name2, int* process_2, 
                 // If this is the process code
                 // PID of the child is 0 
                 case 0:
+                    strncpy(pArgv[0], name2, argv0size);
                     printf("The pid of the %s is %d\n", name2, (int)getpid());
 
                     // Fork from the program and creation of the process_3
@@ -77,6 +82,7 @@ void forkthreeprocess(char* name1, int* process_1, char* name2, int* process_2, 
                         // If this is the process code
                         // PID of the child is 0 
                         case 0:
+                            strncpy(pArgv[0], name3, argv0size);
                             printf("The pid of the %s is %d\n", name3, (int)getpid());
                             pause();
                             break;
@@ -108,14 +114,20 @@ void forkthreeprocess(char* name1, int* process_1, char* name2, int* process_2, 
 
 
 
-void mainfork()
+void mainfork(int pArgc, char **pArgv)
 {
     // Declaration of all the processes in the program
     pid_t process_p, process_a, process_b, process_h, process_e, process_i, process_c, process_d, process_g, process_f, process_j;
 
     char word[256];
+    
+
+    int argv0size = strlen(pArgv[0]);
+    strncpy(pArgv[0],"bolos",argv0size);
+    
     // Fork from the program and creation of the process_p
     process_p = fork();
+
 
     // Switch case for the process_p
     // PID of the child is 0
@@ -129,7 +141,6 @@ void mainfork()
         // PID of the child is 0
         case 0:
             printf("The pid of the process_p is %d\n", (int)getpid());
-
             // Fork from the program and creation of the process_a
             process_a = fork();
 
@@ -144,13 +155,14 @@ void mainfork()
                 // If this is the process_a code
                 // PID of the child is 0  
                 case 0:
+                    strncpy(pArgv[0],"process_a",argv0size);
                     printf("The pid of the process_a is %d\n", (int)getpid());
-                    forkoneprocess("process_h", &process_h);
-                    forkoneprocess("process_e", &process_e);
-                    forkoneprocess("process_i", &process_i);
+                    forkoneprocess("process_h", &process_h, pArgc, pArgv);
+                    forkoneprocess("process_e", &process_e, pArgc, pArgv);
+                    forkoneprocess("process_i", &process_i, pArgc, pArgv);
                     
-                    forkthreeprocess("process_b", &process_b, "process_d", &process_d, "process_g", &process_g);
-                    forkthreeprocess("process_c", &process_c, "process_f", &process_f, "process_j", &process_j);
+                    forkthreeprocess("process_b", &process_b, "process_d", &process_d, "process_g", &process_g, pArgc, pArgv);
+                    forkthreeprocess("process_c", &process_c, "process_f", &process_f, "process_j", &process_j, pArgc, pArgv);
                     // We wait because we have childs pending that can still be alive
                     // If we didn't have any child and we have wait(null) then it will automatically continue
                     // This is why now the process A will live as long as the process have child pending
@@ -179,13 +191,12 @@ void mainfork()
             scanf("%s" , word) ;
     }
 
-
 }
 
 
 int main(int argc, char* argv[])
 {
     // Main function of the fork
-    mainfork();
+    mainfork(argc, argv);
     return 0;
 }
