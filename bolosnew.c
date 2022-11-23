@@ -6,6 +6,19 @@
 #include <string.h>
 // A zombie process : A child that terminates, but has not been waited for becomes a "zombie".
 
+// Declaration of all the processes in the program
+pid_t process_p, process_a, process_b, process_h, process_e, process_i, process_c, process_d, process_g, process_f, process_j;
+
+
+void sig_handler_parent(int signum)
+{
+    printf("Received a response signal the process %d \n", getpid());
+    printf("You cannot kill this process with the pid %d \n", getpid());
+    kill(process_h, SIGTERM);
+
+}
+
+
 // Function that takes a string and an integer in parameter
 // This function will create the process that we want
 void forkoneprocess(char* name, int *process, int pArgc, char **pArgv)
@@ -118,8 +131,6 @@ void forkthreeprocess(char* name1, int* process_1, char* name2, int* process_2, 
 
 void mainfork(int pArgc, char **pArgv)
 {
-    // Declaration of all the processes in the program
-    pid_t process_p, process_a, process_b, process_h, process_e, process_i, process_c, process_d, process_g, process_f, process_j;
 
     char word[256];
     
@@ -145,7 +156,8 @@ void mainfork(int pArgc, char **pArgv)
             printf("The pid of the process_p is %d\n", (int)getpid());
             // Fork from the program and creation of the process_a
             process_a = fork();
-
+            signal(SIGUSR1,sig_handler_parent);
+            //signal(SIGUSR1, sig_handler_parent);
             // Switch case for the process_a
             // PID of the child is 0
             switch(process_a)
@@ -157,6 +169,8 @@ void mainfork(int pArgc, char **pArgv)
                 // If this is the process_a code
                 // PID of the child is 0  
                 case 0:
+                    
+                    //raise(SIGUSR1);
                     strncpy(pArgv[0],"process_a",argv0size);
                     printf("The pid of the process_a is %d\n", (int)getpid());
                     forkoneprocess("process_h", &process_h, pArgc, pArgv);
@@ -169,7 +183,11 @@ void mainfork(int pArgc, char **pArgv)
                     // If we didn't have any child and we have wait(null) then it will automatically continue
                     // This is why now the process A will live as long as the process have child pending
                     // Otherwise we could have used the pause() method
-                    
+
+                    sleep(4);
+                    printf("Please provide anything in the keyboard to try to send a sigterm signal to the process_a\n");
+                    scanf("%s" , word);
+                    kill(getpid(), SIGUSR1);
                     wait(NULL);
                     pause();
                
@@ -177,8 +195,8 @@ void mainfork(int pArgc, char **pArgv)
                 // If this is not the process_a code then it is the process_p code
                 // In this case, the goal is to kill it manually or we could let it die on its own
                 default:
-                    printf("The pid of the process_p dies %d\n", (int)getpid());
                     // We could let it die on its own, but we can also kill it manually with the sigterm signal
+                    printf("The pid of the process_p dies %d\n", (int)getpid());
                     kill(getpid(), SIGTERM);
                     break;
 
@@ -193,15 +211,10 @@ void mainfork(int pArgc, char **pArgv)
             // Then an entry is prompted
             // If the p program was paused, then the main program will wait indefinitely and the scanf method will not be executed
             wait(NULL);
-            sleep(4);
-            printf("Please provide anything in the keyboard to try to send a sigterm signal to the process_a\n");
-            scanf("%s" , word);
-            kill(process_a, SIGTERM);
             pause();
     }
 
 }
-
 
 int main(int argc, char* argv[])
 {
