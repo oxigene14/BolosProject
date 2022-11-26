@@ -6,14 +6,19 @@
 #include <string.h>
 #include <sys/time.h>
 #include <stdlib.h>
+#include <stdbool.h>
 
 
 // A zombie process : A child that terminates, but has not been waited for becomes a "zombie".
 
 // Declaration of all the processes in the program
 pid_t process_p, process_a, process_b, process_h, process_e, process_i, process_c, process_d, process_g, process_f, process_j;
+// bool process_h = false; 
+// bool process_e = false;
+// bool process_i = false;
+// bool finished = false;
 
-
+struct timeval current_time;
 
 void sig_handler_1(int signum)
 {
@@ -123,11 +128,71 @@ void forkthreeprocess(char* name1, int* process_1, char* name2, int* process_2, 
                             //wait(NULL);
                             kill(getpid(), SIGSTOP);
                             printf("The %s has received the unpause signal from the process %s \n", name2, name1);
-                            kill(*process_3, SIGCONT);
-                            printf("The %s with the pid %d has been killed \n", name2, (int)getpid());
-                            exit(0);
-                            break;
-                    }
+
+                            gettimeofday(&current_time, NULL);
+                            int rd = rand() % 20;
+                            int rest = (current_time.tv_sec + rd) % 4;
+                            printf("seconds : %ld\n", (current_time.tv_sec + rd));
+                            printf("The rest of the current_time modulo 4 is %d for the process %s \n", rest, name2);
+
+                            int status = -1;
+                        
+                            switch(rest)
+                            {
+                                    // If the rest is equal to 0, then nothing happens
+                                    // We break to quit the switchcase
+                                case 0:
+                                    break;
+                                    // If the rest is equal to 1, then the signal sigterm is sent to the child on the right
+                                case 1:
+                                    // if ( waitpid(process_c, &status, WNOHANG) == 0)
+                                    // {
+                                    //     kill(process_c, SIGCONT);
+                                    //     sleep(1);
+                                    //     //kill(process_c, SIGKILL);
+                                    //     //printf("The process_c with the pid %d has been killed \n", process_c);
+                                    // }
+                                    break;
+
+                                // If the rest is equal to 2, then the signal sigterm is sent to the child on the left
+                                case 2:
+                                    if ( waitpid(*process_3, &status, WNOHANG) == 0)
+                                    {
+                                        kill(*process_3, SIGCONT);
+                                        sleep(1);
+                                    //kill(process_b, SIGKILL);
+                                    //printf("The process_b with the pid %d has been killed \n", process_b);
+                                    }
+                                    break;
+
+                                // If the rest is equal to 3, then the signal sigterm is sent to both child on the left abd on the right
+                                case 3:
+                                    if ( waitpid(process_c, &status, WNOHANG) == 0)
+                                    {
+                                        //kill(process_c, SIGKILL);
+                                        //kill(process_c, SIGCONT);
+                                        sleep(1);
+                                        //printf("The process_c with the pid %d has been killed \n", process_c);
+                                    }
+
+                                    if ( waitpid(*process_3, &status, WNOHANG) == 0)
+                                    {
+                                        //kill(process_b, SIGKILL);
+                                        kill(*process_3, SIGCONT);
+                                        sleep(1);
+                                        //printf("The process_b with the pid %d has been killed \n", process_b);                    
+                                    }
+                                    break;
+                                default:
+                                    printf("");
+                            }
+
+
+                                //kill(*process_3, SIGCONT);
+                                printf("The %s with the pid %d has been killed \n", name2, (int)getpid());
+                                exit(0);
+                                break;
+                        }
                     break;
                 // If this is not the process code
                 default:
@@ -137,7 +202,67 @@ void forkthreeprocess(char* name1, int* process_1, char* name2, int* process_2, 
                     kill(getpid(), SIGSTOP);
                     printf("The %s has received the unpause signal from the process A \n", name1);
                     //wait(NULL);
-                    kill(*process_2, SIGCONT);
+                    //kill(*process_2, SIGCONT);
+
+                    gettimeofday(&current_time, NULL);
+                    int rd = rand() % 20;
+                    int rest = (current_time.tv_sec + rd) % 4;
+                    printf("seconds : %ld\n", (current_time.tv_sec + rd));
+                    printf("The rest of the current_time modulo 4 is %d for the process %s \n", rest, name1);
+
+                    int status = -1;
+                        
+                    switch(rest)
+                    {
+                        // If the rest is equal to 0, then nothing happens
+                        // We break to quit the switchcase
+                        case 0:
+                            break;
+                        // If the rest is equal to 1, then the signal sigterm is sent to the child on the right
+                        case 1:
+                            // if ( waitpid(process_c, &status, WNOHANG) == 0)
+                            // {
+                            //     kill(process_c, SIGCONT);
+                            //     sleep(1);
+                            //     //kill(process_c, SIGKILL);
+                            //     //printf("The process_c with the pid %d has been killed \n", process_c);
+                            // }
+                            break;
+
+                        // If the rest is equal to 2, then the signal sigterm is sent to the child on the left
+                        case 2:
+                            if ( waitpid(*process_2, &status, WNOHANG) == 0)
+                            {
+                                kill(*process_2, SIGCONT);
+                                sleep(1);
+                                //kill(process_b, SIGKILL);
+                                //printf("The process_b with the pid %d has been killed \n", process_b);
+                            }
+                            break;
+
+                        // If the rest is equal to 3, then the signal sigterm is sent to both child on the left abd on the right
+                        case 3:
+                            if ( waitpid(process_c, &status, WNOHANG) == 0)
+                            {
+                                //kill(process_c, SIGKILL);
+                                //kill(process_c, SIGCONT);
+                                sleep(1);
+                                //printf("The process_c with the pid %d has been killed \n", process_c);
+                            }
+
+                            if ( waitpid(*process_2, &status, WNOHANG) == 0)
+                            {
+                                //kill(process_b, SIGKILL);
+                                kill(*process_2, SIGCONT);
+                                sleep(1);
+                                //printf("The process_b with the pid %d has been killed \n", process_b);                    
+                            }
+                            break;
+                        default:
+                            printf("");
+                    }
+
+                    
                     printf("The %s with the pid %d has been killed \n", name1, (int)getpid());
                     exit(0);
                     break;
@@ -153,6 +278,215 @@ void forkthreeprocess(char* name1, int* process_1, char* name2, int* process_2, 
     }
 
 }
+
+// Function that takes 3 process in parameter and that will create the chain BDG and CFJ
+// The 3 process will be created right after the other 
+void forkthreeprocessbis(char* name1, int* process_1, char* name2, int* process_2, char* name3, int* process_3, int pArgc, char **pArgv)
+{
+    int argv0size = strlen(pArgv[0]);
+    // Fork from the program and creation of the process_1
+    *process_1 = fork();
+    // Switch case for the process created
+    // PID of the child is 0
+    switch(*process_1)
+    {
+        // If an error ocurred while forking then print an error message to stderr
+        case -1:
+            perror("fork failed for the process");
+            break;
+        // If this is the process code
+        // PID of the child is 0 
+        case 0:
+            strncpy(pArgv[0], name1, argv0size);
+            printf("The pid of the %s is %d\n", name1, (int)getpid());
+
+            // Fork from the program and creation of the process_2
+            *process_2 = fork();
+            switch(*process_2)
+            {
+                // If an error ocurred while forking then print an error message to stderr
+                case -1:
+                    perror("fork failed for the process");
+                    break;
+                // If this is the process code
+                // PID of the child is 0 
+                case 0:
+                    strncpy(pArgv[0], name2, argv0size);
+                    printf("The pid of the %s is %d\n", name2, (int)getpid());
+
+                    // Fork from the program and creation of the process_3
+                    *process_3 = fork();
+                    switch(*process_3)
+                    {
+                        // If an error ocurred while forking then print an error message to stderr
+                        case -1:
+                            perror("fork failed for the process");
+                            break;
+                        // If this is the process code
+                        // PID of the child is 0 
+                        case 0:
+                            strncpy(pArgv[0], name3, argv0size);
+                            printf("The pid of the %s is %d\n", name3, (int)getpid());
+                            kill(getpid(), SIGSTOP);
+                            printf("The %s has received the unpause signal from the process %s \n", name3, name2);
+                            printf("The %s with the pid %d has been killed \n", name3, (int)getpid());
+                            exit(0);
+                            break;
+                        // If this is not the process code
+                        default:
+                            // used for the child to finish its process
+                            //wait(NULL);
+                            kill(getpid(), SIGSTOP);
+                            printf("The %s has received the unpause signal from the process %s \n", name2, name1);
+                            //kill(*process_3, SIGCONT);
+                            
+                            gettimeofday(&current_time, NULL);
+                            int rd = rand() % 20;
+                            int rest = (current_time.tv_sec + rd) % 4;
+                            printf("seconds : %ld\n", (current_time.tv_sec + rd));
+                            printf("The rest of the current_time modulo 4 is %d for the processs %s \n", name2);
+
+                            int status = -1;
+                        
+                            switch(rest)
+                            {
+                                    // If the rest is equal to 0, then nothing happens
+                                    // We break to quit the switchcase
+                                case 0:
+                                    break;
+                                    // If the rest is equal to 1, then the signal sigterm is sent to the child on the right
+                                case 1:
+                                     if ( waitpid(*process_3, &status, WNOHANG) == 0)
+                                     {
+                                         kill(*process_3, SIGCONT);
+                                         sleep(1);
+                                         //kill(process_c, SIGKILL);
+                                         //printf("The process_c with the pid %d has been killed \n", process_c);
+                                     }
+                                    break;
+
+                                // If the rest is equal to 2, then the signal sigterm is sent to the child on the left
+                                case 2:
+                                    // if ( waitpid(*process_3, &status, WNOHANG) == 0)
+                                    // {
+                                    //     kill(*process_3, SIGCONT);
+                                    //     sleep(1);
+                                    //kill(process_b, SIGKILL);
+                                    //printf("The process_b with the pid %d has been killed \n", process_b);
+                                    //}
+                                    break;
+
+                                // If the rest is equal to 3, then the signal sigterm is sent to both child on the left abd on the right
+                                case 3:
+                                    if ( waitpid(*process_3, &status, WNOHANG) == 0)
+                                     {
+                                         kill(*process_3, SIGCONT);
+                                         sleep(1);
+                                         //kill(process_c, SIGKILL);
+                                         //printf("The process_c with the pid %d has been killed \n", process_c);
+                                     }
+
+                                    // if ( waitpid(*process_3, &status, WNOHANG) == 0)
+                                    // {
+                                    //     //kill(process_b, SIGKILL);
+                                    //     kill(*process_3, SIGCONT);
+                                    //     sleep(1);
+                                    //     //printf("The process_b with the pid %d has been killed \n", process_b);                    
+                                    // }
+                                    break;
+                                default:
+                                    printf("");
+                            }
+                            printf("The %s with the pid %d has been killed \n", name2, (int)getpid());
+                            exit(0);
+                            break;
+                    }
+                    break;
+                // If this is not the process code
+                default:
+                    // Used for the child to finish its process
+                    
+                    
+                    kill(getpid(), SIGSTOP);
+                    printf("The %s has received the unpause signal from the process A \n", name1);
+                    //wait(NULL);
+                    //kill(*process_2, SIGCONT);
+
+                    gettimeofday(&current_time, NULL);
+                    int rd = rand() % 20;
+                    int rest = (current_time.tv_sec + rd) % 4;
+                    printf("seconds : %ld\n", (current_time.tv_sec + rd));
+                    printf("The rest of the current_time modulo 4 is %d for the process %s \n", rest, name1);
+
+                    int status = -1;
+                        
+                    switch(rest)
+                    {
+                        // If the rest is equal to 0, then nothing happens
+                        // We break to quit the switchcase
+                        case 0:
+                            break;
+                        // If the rest is equal to 1, then the signal sigterm is sent to the child on the right
+                        case 1:
+                            if ( waitpid(*process_2, &status, WNOHANG) == 0)
+                            {
+                                kill(*process_2, SIGCONT);
+                                sleep(1);
+                                //kill(process_c, SIGKILL);
+                                //printf("The process_c with the pid %d has been killed \n", process_c);
+                            }
+                            break;
+
+                        // If the rest is equal to 2, then the signal sigterm is sent to the child on the left
+                        case 2:
+                            // if ( waitpid(*process_2, &status, WNOHANG) == 0)
+                            // {
+                            //     kill(process_d, SIGCONT);
+                            //     sleep(1);
+                            //     //kill(process_b, SIGKILL);
+                            //     //printf("The process_b with the pid %d has been killed \n", process_b);
+                            // }
+                            break;
+
+                        // If the rest is equal to 3, then the signal sigterm is sent to both child on the left abd on the right
+                        case 3:
+                            if ( waitpid(*process_2, &status, WNOHANG) == 0)
+                            {
+                                kill(*process_2, SIGCONT);
+                                sleep(1);
+                                //kill(process_c, SIGKILL);
+                                //printf("The process_c with the pid %d has been killed \n", process_c);
+                            }
+
+                            // if ( waitpid(process_d, &status, WNOHANG) == 0)
+                            // {
+                            //     //kill(process_b, SIGKILL);
+                            //     kill(process_d, SIGCONT);
+                            //     sleep(1);
+                            //     //printf("The process_b with the pid %d has been killed \n", process_b);                    
+                            // }
+                            break;
+                        default:
+                            printf("");
+                    }
+
+                    
+                    printf("The %s with the pid %d has been killed \n", name1, (int)getpid());
+                    exit(0);
+                    break;
+                    
+            }
+            break;
+        // If this is not the process code
+        default:
+            // No wait(NULL) because we are already waiting in the process when the function is called
+            //wait(NULL);
+            break;
+            
+    }
+
+}
+
 
 void mainfork(int pArgc, char **pArgv)
 {
@@ -202,7 +536,7 @@ void mainfork(int pArgc, char **pArgv)
                     forkoneprocess("process_i", &process_i, pArgc, pArgv);
                     
                     forkthreeprocess("process_b", &process_b, "process_d", &process_d, "process_g", &process_g, pArgc, pArgv);
-                    forkthreeprocess("process_c", &process_c, "process_f", &process_f, "process_j", &process_j, pArgc, pArgv);
+                    forkthreeprocessbis("process_c", &process_c, "process_f", &process_f, "process_j", &process_j, pArgc, pArgv);
                     // We wait because we have childs pending that can still be alive
                     // If we didn't have any child and we have wait(null) then it will automatically continue
                     // This is why now the process A will live as long as the process have child pending
@@ -210,75 +544,94 @@ void mainfork(int pArgc, char **pArgv)
                     //signal(SIGUSR1,sig_handler_2);
                     
                         
-                        sleep(2);
-                        printf("Please provide anything in the keyboard to try to send a sigterm signal to the process_a\n");
-                        scanf("%s" , word);
-                        kill(getpid(), SIGTERM);
+                    sleep(2);
+                    printf("Please provide anything in the keyboard to try to send a sigterm signal to the process_a\n");
+                    scanf("%s" , word);
+                    kill(getpid(), SIGTERM);
                         
-                        // Does not work ?
-                        //signal(SIGTERM, sig_handler_2);
-                        printf("\nprocess_a: %d\n", getpid());
-                        printf("You cannot kill this process with the pid %d \n\n", getpid());
+                    // Does not work ?
+                    //signal(SIGTERM, sig_handler_2);
+                    printf("\nprocess_a: %d\n", getpid());
+                    printf("You cannot kill this process with the pid %d \n\n", getpid());
                         
-                        struct timeval current_time;
-                        gettimeofday(&current_time, NULL);
-                        printf("seconds : %ld\n",current_time.tv_sec);
-                        int rest = current_time.tv_sec % 4;
-                        printf("The rest of the current_time modulo 4 is %d\n", rest);
-
-                        int status = -1;
                         
-                        switch(rest)
-                        {
-                            // If the rest is equal to 0, then nothing happens
-                            // We break to quit the switchcase
-                            case 0:
-                                break;
-                            // If the rest is equal to 1, then the signal sigterm is sent to the child on the right
-                            case 1:
-                                if ( waitpid(process_c, &status, WNOHANG) == 0)
-                                {
-                                    kill(process_c, SIGCONT);
-                                    sleep(1);
-                                    //kill(process_c, SIGKILL);
-                                    //printf("The process_c with the pid %d has been killed \n", process_c);
-                                }
-                                break;
+                    gettimeofday(&current_time, NULL);
+                    printf("seconds : %ld\n",current_time.tv_sec);
+                    int rest = current_time.tv_sec % 4;
+                    printf("The rest of the current_time modulo 4 is %d for the process_a \n", rest);
 
-                            // If the rest is equal to 2, then the signal sigterm is sent to the child on the left
-                            case 2:
-                                if ( waitpid(process_b, &status, WNOHANG) == 0)
-                                {
-                                    kill(process_b, SIGCONT);
-                                    sleep(1);
-                                    //kill(process_b, SIGKILL);
-                                    //printf("The process_b with the pid %d has been killed \n", process_b);
-                                }
-                                break;
+                    int status = -1;
+                        
+                    switch(rest)
+                    {
+                        // If the rest is equal to 0, then nothing happens
+                        // We break to quit the switchcase
+                        case 0:
+                            break;
+                        // If the rest is equal to 1, then the signal sigterm is sent to the child on the right
+                        case 1:
+                            if ( waitpid(process_c, &status, WNOHANG) == 0)
+                            {
+                                kill(process_c, SIGCONT);
+                                sleep(1);
+                                //kill(process_c, SIGKILL);
+                                //printf("The process_c with the pid %d has been killed \n", process_c);
+                            }
+                            break;
 
-                            // If the rest is equal to 3, then the signal sigterm is sent to both child on the left abd on the right
-                            case 3:
-                                if ( waitpid(process_c, &status, WNOHANG) == 0)
-                                {
-                                    //kill(process_c, SIGKILL);
-                                    kill(process_c, SIGCONT);
-                                    sleep(1);
-                                    //printf("The process_c with the pid %d has been killed \n", process_c);
-                                }
+                        // If the rest is equal to 2, then the signal sigterm is sent to the child on the left
+                        case 2:
+                            if ( waitpid(process_b, &status, WNOHANG) == 0)
+                            {
+                                kill(process_b, SIGCONT);
+                                sleep(1);
+                                //kill(process_b, SIGKILL);
+                                //printf("The process_b with the pid %d has been killed \n", process_b);
+                            }
+                            break;
 
-                                if ( waitpid(process_b, &status, WNOHANG) == 0)
-                                {
-                                    //kill(process_b, SIGKILL);
-                                    kill(process_b, SIGCONT);
-                                    sleep(1);
-                                    //printf("The process_b with the pid %d has been killed \n", process_b);                    
-                                }
-                                break;
-                            default:
-                                printf("");
-                        }
+                        // If the rest is equal to 3, then the signal sigterm is sent to both child on the left abd on the right
+                        case 3:
+                            if ( waitpid(process_c, &status, WNOHANG) == 0)
+                            {
+                                //kill(process_c, SIGKILL);
+                                kill(process_c, SIGCONT);
+                                sleep(1);
+                                //printf("The process_c with the pid %d has been killed \n", process_c);
+                            }
+
+                            if ( waitpid(process_b, &status, WNOHANG) == 0)
+                            {
+                                //kill(process_b, SIGKILL);
+                                kill(process_b, SIGCONT);
+                                sleep(1);
+                                //printf("The process_b with the pid %d has been killed \n", process_b);                    
+                            }
+                            break;
+                        default:
+                            printf("");
+                    }
     
-                    
+                    //kill(getpid(), SIGSTOP);
+                    // while (!finished)
+                    // {
+                        // if (process_h)
+                        // {
+                        //     kill(process_h, SIGCONT);
+                        // }
+
+                        // if (process_e)
+                        // {
+                        //     kill(process_e, SIGCONT);
+                        // }
+
+                        // if (process_i)
+                        // {
+                        //     kill(process_i, SIGCONT);
+                        // }
+
+                    //}
+
                     wait(NULL);
                     sleep(2);
                     wait(NULL);
