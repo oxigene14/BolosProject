@@ -13,10 +13,10 @@
 
 // Declaration of all the processes in the program
 pid_t process_p, process_a, process_b, process_h, process_e, process_i, process_c, process_d, process_g, process_f, process_j;
-// bool process_h = false; 
-// bool process_e = false;
-// bool process_i = false;
-// bool finished = false;
+bool boolprocess_h = false; 
+bool boolprocess_e = false;
+bool boolprocess_i = false;
+bool boolfinished = false;
 
 struct timeval current_time;
 
@@ -222,6 +222,8 @@ void forkthreeprocess(char* name1, int* process_1, char* name2, int* process_2, 
                             break;
                         // If the rest is equal to 1, then the signal sigterm is sent to the child on the right
                         case 1:
+                            // boolprocess_e = true;
+                            // kill(process_a, SIGCONT);
                             // if ( waitpid(process_c, &status, WNOHANG) == 0)
                             // {
                             //     kill(process_c, SIGCONT);
@@ -244,13 +246,8 @@ void forkthreeprocess(char* name1, int* process_1, char* name2, int* process_2, 
 
                         // If the rest is equal to 3, then the signal sigterm is sent to both child on the left abd on the right
                         case 3:
-                            if ( waitpid(process_c, &status, WNOHANG) == 0)
-                            {
-                                //kill(process_c, SIGKILL);
-                                //kill(process_c, SIGCONT);
-                                sleep(1);
-                                //printf("The process_c with the pid %d has been killed \n", process_c);
-                            }
+                            // boolprocess_e = true;
+                            // kill(process_a, SIGCONT);
 
                             if ( waitpid(*process_2, &status, WNOHANG) == 0)
                             {
@@ -443,6 +440,8 @@ void forkthreeprocessbis(char* name1, int* process_1, char* name2, int* process_
 
                         // If the rest is equal to 2, then the signal sigterm is sent to the child on the left
                         case 2:
+                            // boolprocess_e = true;
+                            // kill(process_a, SIGCONT);
                             // if ( waitpid(*process_2, &status, WNOHANG) == 0)
                             // {
                             //     kill(process_d, SIGCONT);
@@ -461,7 +460,8 @@ void forkthreeprocessbis(char* name1, int* process_1, char* name2, int* process_
                                 //kill(process_c, SIGKILL);
                                 //printf("The process_c with the pid %d has been killed \n", process_c);
                             }
-
+                            // boolprocess_e = true;
+                            // kill(process_a, SIGCONT);
                             // if ( waitpid(process_d, &status, WNOHANG) == 0)
                             // {
                             //     //kill(process_b, SIGKILL);
@@ -616,25 +616,17 @@ void mainfork(int pArgc, char **pArgv)
                             printf("");
                     }
     
-                    //kill(getpid(), SIGSTOP);
-                    // while (!finished)
+                    // kill(getpid(), SIGSTOP);
+                    // while (!boolfinished)
                     // {
-                        // if (process_h)
-                        // {
-                        //     kill(process_h, SIGCONT);
-                        // }
+                    //     if (boolprocess_h)
+                    //     {
+                    //         kill(process_h, SIGCONT);
+                    //     }
 
-                        // if (process_e)
-                        // {
-                        //     kill(process_e, SIGCONT);
-                        // }
+                       
 
-                        // if (process_i)
-                        // {
-                        //     kill(process_i, SIGCONT);
-                        // }
-
-                    //}
+                    // }
                     wait(NULL);
                     sleep(2);
                     wait(NULL);
