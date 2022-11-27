@@ -7,7 +7,7 @@
 #include <sys/time.h>
 #include <stdlib.h>
 #include <stdbool.h>
-
+#include <time.h>
 
 // A zombie process : A child that terminates, but has not been waited for becomes a "zombie".
 
@@ -130,6 +130,7 @@ void forkthreeprocess(char* name1, int* process_1, char* name2, int* process_2, 
                             printf("The %s has received the unpause signal from the process %s \n", name2, name1);
 
                             gettimeofday(&current_time, NULL);
+                            srand ( time(NULL) );
                             int rd = rand() % 20;
                             int rest = (current_time.tv_sec + rd) % 4;
                             printf("seconds : %ld\n", (current_time.tv_sec + rd));
@@ -205,6 +206,7 @@ void forkthreeprocess(char* name1, int* process_1, char* name2, int* process_2, 
                     //kill(*process_2, SIGCONT);
 
                     gettimeofday(&current_time, NULL);
+                    srand ( time(NULL) );
                     int rd = rand() % 20;
                     int rest = (current_time.tv_sec + rd) % 4;
                     printf("seconds : %ld\n", (current_time.tv_sec + rd));
@@ -341,10 +343,11 @@ void forkthreeprocessbis(char* name1, int* process_1, char* name2, int* process_
                             //kill(*process_3, SIGCONT);
                             
                             gettimeofday(&current_time, NULL);
+                            srand ( time(NULL) );
                             int rd = rand() % 20;
                             int rest = (current_time.tv_sec + rd) % 4;
                             printf("seconds : %ld\n", (current_time.tv_sec + rd));
-                            printf("The rest of the current_time modulo 4 is %d for the processs %s \n", name2);
+                            printf("The rest of the current_time modulo 4 is %d for the processs %s \n", rest, name2);
 
                             int status = -1;
                         
@@ -413,6 +416,7 @@ void forkthreeprocessbis(char* name1, int* process_1, char* name2, int* process_
                     //kill(*process_2, SIGCONT);
 
                     gettimeofday(&current_time, NULL);
+                    srand ( time(NULL) );
                     int rd = rand() % 20;
                     int rest = (current_time.tv_sec + rd) % 4;
                     printf("seconds : %ld\n", (current_time.tv_sec + rd));
@@ -631,7 +635,6 @@ void mainfork(int pArgc, char **pArgv)
                         // }
 
                     //}
-
                     wait(NULL);
                     sleep(2);
                     wait(NULL);
