@@ -6,32 +6,37 @@
 #include <string.h>
 #include <sys/time.h>
 #include <stdlib.h>
-#include <stdbool.h>
+//#include <stdbool.h>
 #include <time.h>
 
 // A zombie process : A child that terminates, but has not been waited for becomes a "zombie".
 
 // Declaration of all the processes in the program
 pid_t process_p, process_a, process_b, process_h, process_e, process_i, process_c, process_d, process_g, process_f, process_j;
-bool boolprocess_h = false; 
-bool boolprocess_e = false;
-bool boolprocess_i = false;
-bool boolfinished = false;
 
+// Boolean for knowing when certain process are finished
+// bool boolprocess_h = false; 
+// bool boolprocess_e = false;
+// bool boolprocess_i = false;
+// bool boolfinished = false;
+
+// Struct for the current time that will be used later on with the variable gettimeofday
 struct timeval current_time;
 
+// Sig_handler that will be able to catch de SIGTERM signal to the process.
+// In this function, nothing happens when the signal is caught
+// We should not printf values in this function because it can lead to unwanted results
 void sig_handler_1(int signum)
 {
-
     signal(SIGTERM, sig_handler_1); /* reset signal */
-    
 }
 
 
 // Function that takes a string and an integer in parameter
 // This function will create the process that we want
-void forkoneprocess(char* name, int *process, int pArgc, char **pArgv)
+void forkoneprocess(char* name, pid_t *process, pid_t pArgc, char **pArgv)
 {
+    // Use to get the size of the variable pargv given in parameter (used to rename the process)
     int argv0size = strlen(pArgv[0]);
     // Fork from the program and creation of the process
     *process = fork();
@@ -41,6 +46,7 @@ void forkoneprocess(char* name, int *process, int pArgc, char **pArgv)
     switch(*process)
     {
         // If an error ocurred while forking then print an error message to stderr
+        // Break is necessary if we have entered this condition
         case -1:
             perror("fork failed for the process");
             break;
@@ -55,15 +61,16 @@ void forkoneprocess(char* name, int *process, int pArgc, char **pArgv)
             exit(0);
             break;
         // If this is not the process code
+        // Nothing happens and we just break the process
         default:
             break;
     }
 }
 
 
-// Function that takes 3 process in parameter and that will create the chain BDG and CFJ
+// Function that takes 3 process in parameter and that will create the chain BDG
 // The 3 process will be created right after the other 
-void forkthreeprocess(char* name1, int* process_1, char* name2, int* process_2, char* name3, int* process_3, int pArgc, char **pArgv)
+void forkthreeprocess(char* name1, pid_t* process_1, char* name2, pid_t* process_2, char* name3, pid_t* process_3, int pArgc, char **pArgv)
 {
     int argv0size = strlen(pArgv[0]);
     // Fork from the program and creation of the process_1
@@ -79,9 +86,9 @@ void forkthreeprocess(char* name1, int* process_1, char* name2, int* process_2, 
         // If this is the process code
         // PID of the child is 0 
         case 0:
+            // Function used to copy in the pArgv[0] the name variable (to change the name of the process)
             strncpy(pArgv[0], name1, argv0size);
             printf("The pid of the %s is %d\n", name1, (int)getpid());
-
             // Fork from the program and creation of the process_2
             *process_2 = fork();
             switch(*process_2)
@@ -93,6 +100,7 @@ void forkthreeprocess(char* name1, int* process_1, char* name2, int* process_2, 
                 // If this is the process code
                 // PID of the child is 0 
                 case 0:
+                    // Function used to copy in the pArgv[0] the name variable (to change the name of the process)
                     strncpy(pArgv[0], name2, argv0size);
                     printf("The pid of the %s is %d\n", name2, (int)getpid());
 
@@ -107,8 +115,10 @@ void forkthreeprocess(char* name1, int* process_1, char* name2, int* process_2, 
                         // If this is the process code
                         // PID of the child is 0 
                         case 0:
+                            // Function used to copy in the pArgv[0] the name variable (to change the name of the process)
                             strncpy(pArgv[0], name3, argv0size);
                             printf("The pid of the %s is %d\n", name3, (int)getpid());
+                            // We send a sigstop signal to this program in order to wait for the parent to send a resume signal
                             kill(getpid(), SIGSTOP);
                             printf("The %s has received the unpause signal from the process %s \n", name3, name2);
                             printf("The %s with the pid %d has been killed \n", name3, (int)getpid());
@@ -116,20 +126,25 @@ void forkthreeprocess(char* name1, int* process_1, char* name2, int* process_2, 
                             break;
                         // If this is not the process code
                         default:
-                            // used for the child to finish its process
+                            // We could have used the wait variable, but we are using SIGSTOP so that we can resume the process later on
                             //wait(NULL);
                             kill(getpid(), SIGSTOP);
                             printf("The %s has received the unpause signal from the process %s \n", name2, name1);
-
+                            // This will be used to retrieve the current_time gettimeofday using the struct created at the beginning
                             gettimeofday(&current_time, NULL);
+                            // We create a srand variable so that each time the result will be different (seed)
                             srand ( time(NULL) );
+                            // Create a random between 0 and 20
                             int rd = rand() % 20;
+                            // rest variable where the current time and the rand will be added so that not the same number is sent to all the process
                             int rest = (current_time.tv_sec + rd) % 4;
                             printf("seconds : %ld\n", (current_time.tv_sec + rd));
                             printf("The rest of the current_time modulo 4 is %d for the process %s \n", rest, name2);
 
+                            // Variable status equal to -1, the value will most likely change
                             int status = -1;
                         
+                            // Switching depending on the result of the rest calculated
                             switch(rest)
                             {
                                     // If the rest is equal to 0, then nothing happens
@@ -138,23 +153,16 @@ void forkthreeprocess(char* name1, int* process_1, char* name2, int* process_2, 
                                     break;
                                     // If the rest is equal to 1, then the signal sigterm is sent to the child on the right
                                 case 1:
-                                    // if ( waitpid(process_c, &status, WNOHANG) == 0)
-                                    // {
-                                    //     kill(process_c, SIGCONT);
-                                    //     sleep(1);
-                                    //     //kill(process_c, SIGKILL);
-                                    //     //printf("The process_c with the pid %d has been killed \n", process_c);
-                                    // }
+                                    // TO DO
                                     break;
 
                                 // If the rest is equal to 2, then the signal sigterm is sent to the child on the left
                                 case 2:
                                     if ( waitpid(*process_3, &status, WNOHANG) == 0)
                                     {
+                                        // We send to the *process_3 the sigcont signal so that it can resume the processs
                                         kill(*process_3, SIGCONT);
                                         sleep(1);
-                                    //kill(process_b, SIGKILL);
-                                    //printf("The process_b with the pid %d has been killed \n", process_b);
                                     }
                                     break;
 
@@ -162,26 +170,20 @@ void forkthreeprocess(char* name1, int* process_1, char* name2, int* process_2, 
                                 case 3:
                                     if ( waitpid(process_c, &status, WNOHANG) == 0)
                                     {
-                                        //kill(process_c, SIGKILL);
-                                        //kill(process_c, SIGCONT);
-                                        sleep(1);
-                                        //printf("The process_c with the pid %d has been killed \n", process_c);
+                                        // TO do
                                     }
 
                                     if ( waitpid(*process_3, &status, WNOHANG) == 0)
                                     {
-                                        //kill(process_b, SIGKILL);
                                         kill(*process_3, SIGCONT);
                                         sleep(1);
-                                        //printf("The process_b with the pid %d has been killed \n", process_b);                    
                                     }
                                     break;
                                 default:
                                     printf("");
                             }
-
-
                                 //kill(*process_3, SIGCONT);
+                                // The process has been killed and we exit de process
                                 printf("The %s with the pid %d has been killed \n", name2, (int)getpid());
                                 exit(0);
                                 break;
@@ -189,16 +191,17 @@ void forkthreeprocess(char* name1, int* process_1, char* name2, int* process_2, 
                     break;
                 // If this is not the process code
                 default:
-                    // Used for the child to finish its process
-                    
-                    
+                    // We pause the current process with SIGSTOP so that we can resume it later
                     kill(getpid(), SIGSTOP);
                     printf("The %s has received the unpause signal from the process A \n", name1);
                     //wait(NULL);
                     //kill(*process_2, SIGCONT);
 
+                    // Same as before with the gettimeofday using the struct created earlier
                     gettimeofday(&current_time, NULL);
+                    // srand to have a different seed and a different result
                     srand ( time(NULL) );
+                    //  Create a random between 0 and 20
                     int rd = rand() % 20;
                     int rest = (current_time.tv_sec + rd) % 4;
                     printf("seconds : %ld\n", (current_time.tv_sec + rd));
@@ -214,15 +217,7 @@ void forkthreeprocess(char* name1, int* process_1, char* name2, int* process_2, 
                             break;
                         // If the rest is equal to 1, then the signal sigterm is sent to the child on the right
                         case 1:
-                            // boolprocess_e = true;
-                            // kill(process_a, SIGCONT);
-                            // if ( waitpid(process_c, &status, WNOHANG) == 0)
-                            // {
-                            //     kill(process_c, SIGCONT);
-                            //     sleep(1);
-                            //     //kill(process_c, SIGKILL);
-                            //     //printf("The process_c with the pid %d has been killed \n", process_c);
-                            // }
+                            // TO DO
                             break;
 
                         // If the rest is equal to 2, then the signal sigterm is sent to the child on the left
@@ -238,8 +233,6 @@ void forkthreeprocess(char* name1, int* process_1, char* name2, int* process_2, 
 
                         // If the rest is equal to 3, then the signal sigterm is sent to both child on the left abd on the right
                         case 3:
-                            // boolprocess_e = true;
-                            // kill(process_a, SIGCONT);
 
                             if ( waitpid(*process_2, &status, WNOHANG) == 0)
                             {
@@ -252,12 +245,10 @@ void forkthreeprocess(char* name1, int* process_1, char* name2, int* process_2, 
                         default:
                             printf("");
                     }
-
-                    
+                    // If we get to this point, then we just kill the process
                     printf("The %s with the pid %d has been killed \n", name1, (int)getpid());
                     exit(0);
-                    break;
-                    
+                    break;   
             }
             break;
         // If this is not the process code
@@ -272,7 +263,7 @@ void forkthreeprocess(char* name1, int* process_1, char* name2, int* process_2, 
 
 // Function that takes 3 process in parameter and that will create the chain BDG and CFJ
 // The 3 process will be created right after the other 
-void forkthreeprocessbis(char* name1, int* process_1, char* name2, int* process_2, char* name3, int* process_3, int pArgc, char **pArgv)
+void forkthreeprocessbis(char* name1, pid_t* process_1, char* name2, pid_t* process_2, char* name3, pid_t* process_3, int pArgc, char **pArgv)
 {
     int argv0size = strlen(pArgv[0]);
     // Fork from the program and creation of the process_1
@@ -288,6 +279,7 @@ void forkthreeprocessbis(char* name1, int* process_1, char* name2, int* process_
         // If this is the process code
         // PID of the child is 0 
         case 0:
+            // Function used to copy in the pArgv[0] the name variable (to change the name of the process)
             strncpy(pArgv[0], name1, argv0size);
             printf("The pid of the %s is %d\n", name1, (int)getpid());
 
@@ -316,23 +308,29 @@ void forkthreeprocessbis(char* name1, int* process_1, char* name2, int* process_
                         // If this is the process code
                         // PID of the child is 0 
                         case 0:
+                            // Function used to copy in the pArgv[0] the name variable (to change the name of the process)
                             strncpy(pArgv[0], name3, argv0size);
                             printf("The pid of the %s is %d\n", name3, (int)getpid());
+                            // We stop the process
                             kill(getpid(), SIGSTOP);
                             printf("The %s has received the unpause signal from the process %s \n", name3, name2);
                             printf("The %s with the pid %d has been killed \n", name3, (int)getpid());
+                            // We exit the process because we've arrived at the end
                             exit(0);
                             break;
                         // If this is not the process code
                         default:
                             // used for the child to finish its process
                             //wait(NULL);
+                            // We stop the current process so that it can be resumed later
                             kill(getpid(), SIGSTOP);
                             printf("The %s has received the unpause signal from the process %s \n", name2, name1);
                             //kill(*process_3, SIGCONT);
                             
+                            // We get the time of day with the structure current_time
                             gettimeofday(&current_time, NULL);
                             srand ( time(NULL) );
+                            // We add a random +20 so that it does not give the same random
                             int rd = rand() % 20;
                             int rest = (current_time.tv_sec + rd) % 4;
                             printf("seconds : %ld\n", (current_time.tv_sec + rd));
@@ -340,6 +338,7 @@ void forkthreeprocessbis(char* name1, int* process_1, char* name2, int* process_
 
                             int status = -1;
                         
+                            // Switch that will decide what to do with this process
                             switch(rest)
                             {
                                     // If the rest is equal to 0, then nothing happens
@@ -348,6 +347,7 @@ void forkthreeprocessbis(char* name1, int* process_1, char* name2, int* process_
                                     break;
                                     // If the rest is equal to 1, then the signal sigterm is sent to the child on the right
                                 case 1:
+                                    // If the process_3 is still active and is not dead
                                      if ( waitpid(*process_3, &status, WNOHANG) == 0)
                                      {
                                          kill(*process_3, SIGCONT);
@@ -359,13 +359,7 @@ void forkthreeprocessbis(char* name1, int* process_1, char* name2, int* process_
 
                                 // If the rest is equal to 2, then the signal sigterm is sent to the child on the left
                                 case 2:
-                                    // if ( waitpid(*process_3, &status, WNOHANG) == 0)
-                                    // {
-                                    //     kill(*process_3, SIGCONT);
-                                    //     sleep(1);
-                                    //kill(process_b, SIGKILL);
-                                    //printf("The process_b with the pid %d has been killed \n", process_b);
-                                    //}
+                                    // TO DO
                                     break;
 
                                 // If the rest is equal to 3, then the signal sigterm is sent to both child on the left abd on the right
@@ -377,14 +371,7 @@ void forkthreeprocessbis(char* name1, int* process_1, char* name2, int* process_
                                          //kill(process_c, SIGKILL);
                                          //printf("The process_c with the pid %d has been killed \n", process_c);
                                      }
-
-                                    // if ( waitpid(*process_3, &status, WNOHANG) == 0)
-                                    // {
-                                    //     //kill(process_b, SIGKILL);
-                                    //     kill(*process_3, SIGCONT);
-                                    //     sleep(1);
-                                    //     //printf("The process_b with the pid %d has been killed \n", process_b);                    
-                                    // }
+                                    // TO DO
                                     break;
                                 default:
                                     printf("");
@@ -432,15 +419,7 @@ void forkthreeprocessbis(char* name1, int* process_1, char* name2, int* process_
 
                         // If the rest is equal to 2, then the signal sigterm is sent to the child on the left
                         case 2:
-                            // boolprocess_e = true;
-                            // kill(process_a, SIGCONT);
-                            // if ( waitpid(*process_2, &status, WNOHANG) == 0)
-                            // {
-                            //     kill(process_d, SIGCONT);
-                            //     sleep(1);
-                            //     //kill(process_b, SIGKILL);
-                            //     //printf("The process_b with the pid %d has been killed \n", process_b);
-                            // }
+                            // TO DO
                             break;
 
                         // If the rest is equal to 3, then the signal sigterm is sent to both child on the left abd on the right
@@ -450,17 +429,8 @@ void forkthreeprocessbis(char* name1, int* process_1, char* name2, int* process_
                                 kill(*process_2, SIGCONT);
                                 sleep(1);
                                 //kill(process_c, SIGKILL);
-                                //printf("The process_c with the pid %d has been killed \n", process_c);
                             }
-                            // boolprocess_e = true;
-                            // kill(process_a, SIGCONT);
-                            // if ( waitpid(process_d, &status, WNOHANG) == 0)
-                            // {
-                            //     //kill(process_b, SIGKILL);
-                            //     kill(process_d, SIGCONT);
-                            //     sleep(1);
-                            //     //printf("The process_b with the pid %d has been killed \n", process_b);                    
-                            // }
+                            // TO DO
                             break;
                         default:
                             printf("");
@@ -487,8 +457,11 @@ void forkthreeprocessbis(char* name1, int* process_1, char* name2, int* process_
 void mainfork(int pArgc, char **pArgv)
 {
 
+    // We set up the word variable with a size of 256
     char word[256];
+    // This will be used to store into a variable the size of the first argument of the program
     int argv0size = strlen(pArgv[0]);
+    // This will put into the variable pArgv[0] the name bolos. The size is also given
     strncpy(pArgv[0],"bolos",argv0size);
     
     // Fork from the program and creation of the process_p
@@ -539,7 +512,7 @@ void mainfork(int pArgc, char **pArgv)
                     // Otherwise we could have used the pause() method
                     //signal(SIGUSR1,sig_handler_2);
                     
-                        
+                    
                     sleep(2);
                     printf("Please provide anything in the keyboard to try to send a sigterm signal to the process_a\n");
                     scanf("%s" , word);
@@ -607,21 +580,13 @@ void mainfork(int pArgc, char **pArgv)
                         default:
                             printf("");
                     }
-    
-                    // kill(getpid(), SIGSTOP);
-                    // while (!boolfinished)
-                    // {
-                    //     if (boolprocess_h)
-                    //     {
-                    //         kill(process_h, SIGCONT);
-                    //     }
 
-                       
-
-                    // }
+                    // Here, we wait 2 times because if a child process sends a signaln the program will continue
+                    // But we have 2 childs for this process, so we wait until both are over
                     wait(NULL);
                     sleep(2);
                     wait(NULL);
+                    // We pause for the moment the program
                     pause();
                
                     break;
